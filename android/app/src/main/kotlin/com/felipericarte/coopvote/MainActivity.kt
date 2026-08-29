@@ -1,4 +1,4 @@
-package com.felipericarte.coopvote_app
+package com.felipericarte.coopvote
 
 import io.flutter.embedding.android.FlutterActivity
 
