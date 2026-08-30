@@ -2,6 +2,12 @@
 
 As mudanças relevantes deste projeto são registradas neste arquivo.
 
+## [0.1.2] - 2026-08-30
+
+### Corrigido
+
+- APK de avaliação assinado para instalação no emulador e em aparelho.
+
 ## [0.1.1] - 2026-08-30
 
 ### Adicionado
