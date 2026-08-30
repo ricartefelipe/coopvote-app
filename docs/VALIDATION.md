@@ -1,4 +1,4 @@
-# Validação da versão 0.1.0
+# Validação da versão 0.1.1
 
 ## Resultado
 
@@ -13,19 +13,21 @@
 
 ## Artefato Android
 
-O APK local é gerado em:
+O APK de avaliação, apontando para `https://coopvote-api.onrender.com`, está versionado em:
 
 ```text
-build/app/outputs/flutter-apk/app-debug.apk
+dist/coopvote-app-0.1.1.apk
 ```
 
-O artefato de desenvolvimento da validação possui SHA-256:
+SHA-256:
 
 ```text
-6CDDE33500B737A7F06C7E94A08C93F717CAD84B9D8D515CE5B382CBDF9269A3
+787C2D748EF87347BBF8BE5BD26800C9572EC776D51C49BCC45857E639564E0B
 ```
 
-O diretório `build` não é versionado. O checksum deve ser recalculado sempre que o aplicativo for recompilado.
+A compilação de desenvolvimento continua em `build/app/outputs/flutter-apk/`. O diretório `build`
+não é versionado. O checksum do artefato em `dist/` deve ser recalculado se o aplicativo for
+recompilado.
 
 ## Escopo por plataforma
 
