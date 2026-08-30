@@ -80,12 +80,12 @@ O app não replica regras de pauta, sessão ou voto. Ele conhece somente o proto
 ## APK publicado
 
 O aplicativo Android apontando para a API em `https://coopvote-api.onrender.com` está em
-[`dist/coopvote-app-0.1.1.apk`](dist/coopvote-app-0.1.1.apk).
+[`dist/coopvote-app-0.1.2.apk`](dist/coopvote-app-0.1.2.apk).
 
 SHA-256:
 
 ```text
-787C2D748EF87347BBF8BE5BD26800C9572EC776D51C49BCC45857E639564E0B
+99715DF45F4D586663CEB4E5766DEF1FBC8CA13D4B8B8303F446549417835EAF
 ```
 
 Instale o arquivo no aparelho (permitir fontes desconhecidas) ou no emulador. A primeira abertura
@@ -95,8 +95,11 @@ Para gerar novamente:
 
 ```powershell
 flutter build apk --release --dart-define=COOPVOTE_ENTRY_URL=https://coopvote-api.onrender.com/api/v1/mobile
+python scripts/verify_apk.py build/app/outputs/flutter-apk/app-release.apk
 ```
+
+O release local é assinado com a chave de depuração do Android para permitir instalação direta.
 
 ## Versão
 
-A versão atual é `0.1.0+1`. Mudanças publicadas são registradas em [CHANGELOG.md](CHANGELOG.md).
+A versão atual é `0.1.2+2`. Mudanças publicadas são registradas em [CHANGELOG.md](CHANGELOG.md).
