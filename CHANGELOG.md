@@ -2,17 +2,17 @@
 
 As mudanças relevantes deste projeto são registradas neste arquivo.
 
+## [0.1.5] - 2026-08-30
+
+### Removido
+
+- a versão 0.1.3 deixa de ser entrega: o anexo limita o FORMULARIO a dois botões, então Voltar no cliente não entra no produto.
+
 ## [0.1.4] - 2026-08-30
 
 ### Removido
 
 - navegação Voltar do cliente (barra, rodapé e histórico local). O anexo limita o FORMULARIO a dois botões; o fluxo volta a seguir somente os callbacks da API.
-
-## [0.1.3] - 2026-08-30
-
-### Adicionado
-
-- botão Voltar na barra e no rodapé, além do gesto/botão voltar do aparelho.
 
 ## [0.1.2] - 2026-08-30
 
