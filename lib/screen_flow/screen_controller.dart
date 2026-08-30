@@ -12,15 +12,14 @@ class ScreenController extends ChangeNotifier {
   final ScreenApi _api;
   final Uri _entryUri;
 
-  final List<AppScreen> _history = [];
+  AppScreen? _screen;
   bool _loading = false;
   String? _errorMessage;
   Uri? _lastUri;
   Map<String, Object?>? _lastBody;
   bool _disposed = false;
 
-  AppScreen? get screen => _history.isEmpty ? null : _history.last;
-  bool get canGoBack => _history.length > 1;
+  AppScreen? get screen => _screen;
   bool get loading => _loading;
   String? get errorMessage => _errorMessage;
 
@@ -35,16 +34,6 @@ class ScreenController extends ChangeNotifier {
 
   Future<void> retry() {
     return _send(_lastUri ?? _entryUri, body: _lastBody);
-  }
-
-  bool goBack() {
-    if (!canGoBack || _loading) {
-      return false;
-    }
-    _history.removeLast();
-    _errorMessage = null;
-    _notifyListeners();
-    return true;
   }
 
   void clearError() {
@@ -67,8 +56,7 @@ class ScreenController extends ChangeNotifier {
     _notifyListeners();
 
     try {
-      final nextScreen = await _api.post(uri, body: body);
-      _history.add(nextScreen);
+      _screen = await _api.post(uri, body: body);
     } on ScreenRequestException catch (error, stackTrace) {
       _errorMessage = error.message;
       _logFailure(error, stackTrace);

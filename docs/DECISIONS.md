@@ -21,7 +21,7 @@
 5. Não há mecanismo de idempotência para callbacks. As repetições são sempre manuais; se a resposta de uma operação mutável for perdida, cabe ao backend impedir duplicidade quando isso for necessário.
 6. Não há formato definido para URL relativa. O app exige URLs absolutas, como nos exemplos e na orientação de domínio configurável.
 7. Não há estado definido para `SELECAO` sem itens. O app apresenta um estado vazio estável.
-8. O anexo não define histórico ou ação de voltar. O app segue somente os callbacks fornecidos pelo servidor.
+8. O anexo limita o FORMULARIO a no máximo dois botões e não define histórico. O app não adiciona Voltar no cliente e segue somente os callbacks do servidor.
 
 ## Restrições de plataforma
 
