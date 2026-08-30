@@ -77,6 +77,26 @@ O app não replica regras de pauta, sessão ou voto. Ele conhece somente o proto
 - A URL de callback é validada e aceita somente os esquemas `http` e `https`.
 - Autenticação não foi adicionada porque o escopo considera as interfaces autorizadas.
 
+## APK publicado
+
+O aplicativo Android apontando para a API em `https://coopvote-api.onrender.com` está em
+[`dist/coopvote-app-0.1.1.apk`](dist/coopvote-app-0.1.1.apk).
+
+SHA-256:
+
+```text
+787C2D748EF87347BBF8BE5BD26800C9572EC776D51C49BCC45857E639564E0B
+```
+
+Instale o arquivo no aparelho (permitir fontes desconhecidas) ou no emulador. A primeira abertura
+pode levar cerca de dois minutos se o ambiente publicado estiver inativo.
+
+Para gerar novamente:
+
+```powershell
+flutter build apk --release --dart-define=COOPVOTE_ENTRY_URL=https://coopvote-api.onrender.com/api/v1/mobile
+```
+
 ## Versão
 
 A versão atual é `0.1.0+1`. Mudanças publicadas são registradas em [CHANGELOG.md](CHANGELOG.md).
