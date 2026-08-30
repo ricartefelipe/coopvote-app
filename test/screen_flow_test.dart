@@ -172,4 +172,64 @@ void main() {
     await tester.pump();
     expect(find.text('Não foi possível concluir a operação.'), findsNothing);
   });
+
+  testWidgets('volta para a tela anterior sem nova requisição', (tester) async {
+    final requests = <http.Request>[];
+    final client = MockClient((request) async {
+      requests.add(request);
+      final response = switch (request.url.path) {
+        '/api/v1/mobile' => {
+          'tipo': 'SELECAO',
+          'titulo': 'Pautas',
+          'itens': [
+            {
+              'texto': 'Cadastrar nova pauta',
+              'url': 'https://api.example.test/api/v1/mobile/agendas/new',
+            },
+          ],
+        },
+        '/api/v1/mobile/agendas/new' => {
+          'tipo': 'FORMULARIO',
+          'titulo': 'Nova pauta',
+          'itens': [
+            {'tipo': 'TEXTO', 'texto': 'Informe os dados da pauta.'},
+          ],
+          'botaoOk': {
+            'texto': 'Cadastrar',
+            'url': 'https://api.example.test/api/v1/mobile/agendas',
+          },
+        },
+        _ => throw StateError('Callback inesperado: ${request.url.path}'),
+      };
+      return http.Response(
+        jsonEncode(response),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+
+    await tester.pumpWidget(
+      CoopVoteApp(
+        entryUri: Uri.parse('https://api.example.test/api/v1/mobile'),
+        screenApi: ScreenApi(client: client),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('back-button')), findsNothing);
+    await tester.tap(find.text('Cadastrar nova pauta'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nova pauta'), findsWidgets);
+    expect(find.byKey(const ValueKey('back-button')), findsOneWidget);
+    expect(requests, hasLength(2));
+
+    await tester.tap(find.byKey(const ValueKey('back-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pautas'), findsWidgets);
+    expect(find.text('Cadastrar nova pauta'), findsOneWidget);
+    expect(find.byKey(const ValueKey('back-button')), findsNothing);
+    expect(requests, hasLength(2));
+  });
 }
