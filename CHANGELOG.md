@@ -2,6 +2,12 @@
 
 As mudanças relevantes deste projeto são registradas neste arquivo.
 
+## [0.1.1] - 2026-08-30
+
+### Adicionado
+
+- APK Android de avaliação em `dist/coopvote-app-0.1.1.apk`, compilado contra a API publicada.
+
 ## [0.1.0] - 2026-08-29
 
 ### Adicionado
