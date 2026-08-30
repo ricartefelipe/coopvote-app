@@ -26,6 +26,6 @@
 ## Restrições de plataforma
 
 - a geração de iOS depende de macOS e Xcode;
-- a publicação Android requer uma chave de assinatura própria;
+- o APK de avaliação é assinado com a chave de depuração do Android para sideload; a publicação em loja requer chave própria;
 - a versão web depende de CORS configurado no backend;
 - dispositivos físicos precisam alcançar o host informado nas URLs de callback.
