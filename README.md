@@ -102,4 +102,4 @@ O release local é assinado com a chave de depuração do Android para permitir 
 
 ## Versão
 
-A versão atual é `0.1.2+2`. Mudanças publicadas são registradas em [CHANGELOG.md](CHANGELOG.md).
+A versão atual é `0.1.3+3`. Mudanças publicadas são registradas em [CHANGELOG.md](CHANGELOG.md).
