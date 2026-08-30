@@ -47,23 +47,8 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
       builder: (context, _) {
         final screen = _controller.screen;
 
-        return PopScope(
-          canPop: !_controller.canGoBack,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) {
-              _controller.goBack();
-            }
-          },
-          child: Scaffold(
+        return Scaffold(
           appBar: AppBar(
-            leading: _controller.canGoBack
-                ? IconButton(
-                    key: const ValueKey('back-app-bar'),
-                    tooltip: 'Voltar',
-                    onPressed: _controller.goBack,
-                    icon: const Icon(Icons.arrow_back),
-                  )
-                : null,
             title: Text(screen?.title ?? 'CoopVote'),
             centerTitle: true,
           ),
@@ -84,20 +69,6 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
                         child: _content(screen),
                       ),
                     ),
-                    if (_controller.canGoBack)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: OutlinedButton.icon(
-                            key: const ValueKey('back-button'),
-                            onPressed: _controller.goBack,
-                            icon: const Icon(Icons.arrow_back),
-                            label: const Text('Voltar'),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -110,7 +81,6 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
                 ),
             ],
           ),
-        ),
         );
       },
     );
