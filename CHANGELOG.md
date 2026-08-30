@@ -2,6 +2,12 @@
 
 As mudanças relevantes deste projeto são registradas neste arquivo.
 
+## [0.1.3] - 2026-08-30
+
+### Adicionado
+
+- botão Voltar na barra e no rodapé, além do gesto/botão voltar do aparelho.
+
 ## [0.1.2] - 2026-08-30
 
 ### Corrigido
