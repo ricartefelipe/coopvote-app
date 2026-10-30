@@ -65,6 +65,19 @@ flutter build web --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.com/api/v
 flutter build apk --debug --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.com/api/v1/mobile
 ```
 
+Jornada móvel real (app de verdade no emulador/dispositivo contra a CoopVote API real, sem mocks):
+
+```bash
+tool/journey/run.sh emulator-5554 build/journey   # exige Docker, adb e o repositório coopvote-api ao lado
+```
+
+O script sobe a API num projeto Compose isolado com o seed sintético, inicia `tool/journey/control_server.py`
+(só no loopback do host, alcançado pelo emulador por `10.0.2.2`) e executa `integration_test/journey_test.dart`:
+login e pautas, eleitor autorizado e ação de gestão recusada, voto com recibo do servidor, toque duplo,
+timeout com conferência do recibo antes de reenviar, pausa/retomada pelo sistema, sessão expirada e troca
+de conta, pauta encerrada pelo horário do servidor, callback de outra origem recusado sem rede e navegação
+com fonte ampliada pelo sistema. As capturas de tela ficam no diretório de evidências.
+
 A versão web serve como validação adicional. Para executá-la contra outro domínio, a API precisa autorizar a origem do navegador por CORS.
 
 ## Organização
