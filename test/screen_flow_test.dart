@@ -2,10 +2,42 @@ import 'dart:convert';
 
 import 'package:coopvote_app/app.dart';
 import 'package:coopvote_app/screen_flow/screen_api.dart';
+import 'package:coopvote_app/session/api_origin.dart';
+import 'package:coopvote_app/session/auth_api.dart';
+import 'package:coopvote_app/session/auth_session.dart';
+import 'package:coopvote_app/session/session_controller.dart';
+import 'package:coopvote_app/session/session_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+
+/// Sessão válida já guardada: os testes de fluxo começam autenticados.
+Future<SessionController> signedInSession() async {
+  final store = InMemorySessionStore();
+  await store.write(
+    AuthSession(
+      accessToken: 'jwt-teste',
+      expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+      roles: const ['VOTER', 'MANAGER'],
+    ),
+  );
+  final origin = ApiOrigin(
+    Uri.parse('https://api.example.test/api/v1/mobile'),
+    allowInsecureHttp: false,
+  );
+  return SessionController(
+    AuthApi(origin, client: MockClient((_) async => http.Response('', 500))),
+    store,
+  );
+}
+
+Widget appWith(http.Client client, SessionController session) => CoopVoteApp(
+  entryUri: Uri.parse('https://api.example.test/api/v1/mobile'),
+  sessionController: session,
+  screenApiFactory: (origin, token) =>
+      ScreenApi(origin, client: client, token: token),
+);
 
 void main() {
   testWidgets('navega por seleção, formulário e callback', (tester) async {
@@ -55,12 +87,7 @@ void main() {
       );
     });
 
-    await tester.pumpWidget(
-      CoopVoteApp(
-        entryUri: Uri.parse('https://api.example.test/api/v1/mobile'),
-        screenApi: ScreenApi(client: client),
-      ),
-    );
+    await tester.pumpWidget(appWith(client, await signedInSession()));
     await tester.pumpAndSettle();
 
     expect(find.text('Pautas'), findsOneWidget);
@@ -81,6 +108,10 @@ void main() {
     expect(find.text('Pauta criada'), findsOneWidget);
     expect(find.text('Nenhuma opção disponível.'), findsOneWidget);
     expect(requests, hasLength(3));
+    expect(
+      requests.every((r) => r.headers['authorization'] == 'Bearer jwt-teste'),
+      isTrue,
+    );
     expect(requests.last.method, 'POST');
     expect(jsonDecode(requests.last.body), {
       'source': 'app',
@@ -113,12 +144,7 @@ void main() {
       );
     });
 
-    await tester.pumpWidget(
-      CoopVoteApp(
-        entryUri: Uri.parse('https://api.example.test/api/v1/mobile'),
-        screenApi: ScreenApi(client: client),
-      ),
-    );
+    await tester.pumpWidget(appWith(client, await signedInSession()));
     await tester.pumpAndSettle();
 
     expect(find.text('Serviço temporariamente indisponível.'), findsOneWidget);
@@ -145,7 +171,7 @@ void main() {
           'itens': [
             {
               'texto': 'Operação com falha',
-              'url': 'https://api.example.test/falha',
+              'url': 'https://api.example.test/api/v1/mobile/falha',
             },
           ],
         }),
@@ -154,12 +180,7 @@ void main() {
       );
     });
 
-    await tester.pumpWidget(
-      CoopVoteApp(
-        entryUri: Uri.parse('https://api.example.test/api/v1/mobile'),
-        screenApi: ScreenApi(client: client),
-      ),
-    );
+    await tester.pumpWidget(appWith(client, await signedInSession()));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Operação com falha'));
     await tester.pumpAndSettle();

@@ -1,10 +1,24 @@
 # Protocolo de telas
 
+Contrato da CoopVote API versão `1.0.0` (`docs/openapi.json` no repositório da API).
+
+## Autenticação
+
+- antes das telas o app chama `POST /api/v1/auth/login` com `associateId` e `password` e recebe
+  `accessToken`, `expiresAt` e `roles`; a sessão fica no armazenamento seguro da plataforma;
+- todo callback leva `Authorization: Bearer <token>`; `401` encerra a sessão e volta ao login;
+- o eleitor de um voto é o sujeito do token: o formulário de voto não tem campo de identificação;
+- as ações oferecidas dependem do papel devolvido pela API; o app não decide permissões.
+
 ## Regras gerais
 
 - toda resposta bem-sucedida deve ser um objeto JSON;
 - `tipo` aceita `FORMULARIO` ou `SELECAO`;
-- toda ação contém `texto` e uma `url` absoluta HTTP ou HTTPS;
+- toda ação contém `texto` e uma `url` absoluta da **mesma origem** da API (esquema, host e porta),
+  sem credenciais, sob `/api/v1/mobile`; outra origem, porta, esquema ou caminho é recusado sem rede;
+  HTTP sem TLS só em compilações com `COOPVOTE_ALLOW_HTTP=true`; redirecionamentos não são seguidos;
+- respostas acima de 256 KiB, telas com mais de 200 itens ou textos acima de 2.000 caracteres são
+  recusadas como violação do protocolo;
 - o acionamento sempre produz uma requisição `POST`;
 - `body` é opcional e não é enviado quando não existe e não há valores de entrada;
 - valores informados nos campos são adicionados pelo `id` e prevalecem em caso de colisão com uma chave do `body`.
@@ -62,3 +76,8 @@ Uma lista vazia é válida e produz o estado visual `Nenhuma opção disponível
 Respostas fora de `2xx` não substituem a tela válida. Quando a API retorna um objeto de problema, o app usa `detail` e preserva `code` para diagnóstico. Se esses campos não existirem, apresenta uma mensagem baseada no status HTTP.
 
 Resposta `2xx` com JSON inválido ou estrutura desconhecida é tratada como violação do protocolo e oferece repetição manual.
+
+Um timeout no callback de voto (`POST .../agendas/{id}/votes`) não é tratado como falha nem como sucesso: o
+app consulta `GET /api/v1/agendas/{id}/votes/me` antes de repetir. Se o recibo existe, informa que o voto
+já estava registrado e não reenvia; se não existe, reenvia. A duplicidade continua garantida pela API
+(`409 DUPLICATE_VOTE`).
