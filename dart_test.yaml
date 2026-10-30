@@ -1,0 +1,3 @@
+tags:
+  contract:
+    description: Contrato real com a CoopVote API; precisa de COOPVOTE_API_URL.
