@@ -8,35 +8,41 @@ import 'widgets/selection_screen_view.dart';
 
 /// Hospeda o fluxo server-driven e seus estados de carregamento e erro.
 class ScreenFlowPage extends StatefulWidget {
-  const ScreenFlowPage({required this.entryUri, this.screenApi, super.key});
+  const ScreenFlowPage({
+    required this.entryUri,
+    required this.screenApi,
+    this.onSessionExpired,
+    this.onLogout,
+    super.key,
+  });
 
   final Uri entryUri;
-  final ScreenApi? screenApi;
+  final ScreenApi screenApi;
+  final Future<void> Function()? onSessionExpired;
+  final Future<void> Function()? onLogout;
 
   @override
   State<ScreenFlowPage> createState() => _ScreenFlowPageState();
 }
 
 class _ScreenFlowPageState extends State<ScreenFlowPage> {
-  late final bool _ownsApi;
-  late final ScreenApi _api;
   late final ScreenController _controller;
 
   @override
   void initState() {
     super.initState();
-    _ownsApi = widget.screenApi == null;
-    _api = widget.screenApi ?? ScreenApi();
-    _controller = ScreenController(_api, widget.entryUri);
+    _controller = ScreenController(
+      widget.screenApi,
+      widget.entryUri,
+      onSessionExpired: widget.onSessionExpired,
+    );
     _controller.loadInitial();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    if (_ownsApi) {
-      _api.close();
-    }
+    widget.screenApi.close();
     super.dispose();
   }
 
@@ -46,11 +52,19 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
       animation: _controller,
       builder: (context, _) {
         final screen = _controller.screen;
-
         return Scaffold(
           appBar: AppBar(
             title: Text(screen?.title ?? 'CoopVote'),
             centerTitle: true,
+            actions: [
+              if (widget.onLogout != null)
+                IconButton(
+                  key: const ValueKey('logout'),
+                  tooltip: 'Sair',
+                  icon: const Icon(Icons.logout),
+                  onPressed: widget.onLogout,
+                ),
+            ],
           ),
           body: Stack(
             children: [
@@ -62,6 +76,10 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
                         message: _controller.errorMessage!,
                         onDismiss: _controller.clearError,
                         onRetry: _controller.retry,
+                        retryLabel:
+                            _controller.voteOutcome == VoteOutcome.pending
+                            ? 'Conferir recibo'
+                            : 'Tentar novamente',
                       ),
                     Expanded(
                       child: AbsorbPointer(
@@ -77,7 +95,7 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: LinearProgressIndicator(),
+                  child: LinearProgressIndicator(semanticsLabel: 'Carregando'),
                 ),
             ],
           ),
@@ -96,7 +114,6 @@ class _ScreenFlowPageState extends State<ScreenFlowPage> {
         onRetry: _controller.retry,
       );
     }
-
     return switch (screen) {
       FormScreen() => FormScreenView(
         key: ValueKey(screen),
@@ -117,47 +134,53 @@ class _ErrorBanner extends StatelessWidget {
     required this.message,
     required this.onDismiss,
     required this.onRetry,
+    required this.retryLabel,
   });
 
   final String message;
   final VoidCallback onDismiss;
   final VoidCallback onRetry;
+  final String retryLabel;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: colors.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.error_outline, color: colors.onErrorContainer),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    message,
-                    style: TextStyle(color: colors.onErrorContainer),
+    return Semantics(
+      liveRegion: true,
+      child: Material(
+        color: colors.errorContainer,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.error_outline, color: colors.onErrorContainer),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: TextStyle(color: colors.onErrorContainer),
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: onDismiss,
-                  tooltip: 'Fechar mensagem',
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: onRetry,
-                child: const Text('Tentar novamente'),
+                  IconButton(
+                    onPressed: onDismiss,
+                    tooltip: 'Fechar mensagem',
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
               ),
-            ),
-          ],
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: const ValueKey('retry'),
+                  onPressed: onRetry,
+                  child: Text(retryLabel),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

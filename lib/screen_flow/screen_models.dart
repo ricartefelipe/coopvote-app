@@ -188,6 +188,12 @@ final class ScreenAction {
   }
 }
 
+/// Limites do protocolo: uma tela não cresce sem teto nem carrega textos enormes.
+abstract final class ProtocolLimits {
+  static const int maxItems = 200;
+  static const int maxTextLength = 2000;
+}
+
 /// Indica que uma resposta não respeita o protocolo suportado.
 final class ScreenProtocolException implements Exception {
   const ScreenProtocolException(this.message);
@@ -213,6 +219,11 @@ List<Object?> _requiredList(Map<String, Object?> json, String field) {
   if (value is! List) {
     throw ScreenProtocolException('$field deve ser uma lista.');
   }
+  if (value.length > ProtocolLimits.maxItems) {
+    throw ScreenProtocolException(
+      '$field excede o máximo de ${ProtocolLimits.maxItems} itens.',
+    );
+  }
   return value.cast<Object?>();
 }
 
@@ -220,6 +231,15 @@ String _requiredString(Map<String, Object?> json, String field) {
   final value = json[field];
   if (value is! String || value.trim().isEmpty) {
     throw ScreenProtocolException('$field deve ser um texto não vazio.');
+  }
+  return _bounded(value, field);
+}
+
+String _bounded(String value, String field) {
+  if (value.length > ProtocolLimits.maxTextLength) {
+    throw ScreenProtocolException(
+      '$field excede o máximo de ${ProtocolLimits.maxTextLength} caracteres.',
+    );
   }
   return value;
 }
@@ -231,7 +251,7 @@ String? _optionalString(Object? value, String field) {
   if (value is! String) {
     throw ScreenProtocolException('$field deve ser um texto.');
   }
-  return value;
+  return _bounded(value, field);
 }
 
 num? _optionalNumber(Object? value, String field) {
