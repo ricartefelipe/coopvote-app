@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.47.9"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze --fatal-infos
+      - name: Unit and widget tests (count must be greater than zero)
+        run: |
+          flutter test --reporter expanded --exclude-tags contract | tee test-output.txt
+          passed=$(grep -cE '^[0-9:]+ \+[0-9]+' test-output.txt || true)
+          test "$passed" -gt 0
+      - name: Web build (release)
+        run: flutter build web --release --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.test/api/v1/mobile
+      - name: Android debug APK (toolchain do runner)
+        run: flutter build apk --debug --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.test/api/v1/mobile --dart-define=COOPVOTE_ALLOW_HTTP=false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: builds
+          path: |
+            build/web
+            build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout CoopVote API at the contract commit
+        uses: actions/checkout@v4
+        with:
+          repository: ricartefelipe/coopvote-api
+          ref: ${{ vars.COOPVOTE_API_REF || 'develop' }}
+          path: coopvote-api
+      - name: Start the API with local seed
+        working-directory: coopvote-api
+        run: |
+          # A API precisa anunciar callbacks na origem exata que o app usa.
+          export API_PORT=18080 DB_PORT=15432 CALLBACK_BASE_URL=http://127.0.0.1:18080
+          docker compose up -d --wait
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Contract test against the real API
+        env:
+          COOPVOTE_API_URL: http://127.0.0.1:18080
+        run: flutter test test/contract --tags contract --reporter expanded
+      - name: Stop API
+        if: always()
+        working-directory: coopvote-api
+        run: docker compose down

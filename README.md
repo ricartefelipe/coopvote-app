@@ -1,6 +1,6 @@
 # CoopVote App
 
-Cliente Flutter server-driven para a CoopVote API. O aplicativo recebe descrições de tela em JSON, renderiza os componentes suportados e envia as ações de volta à URL definida pelo servidor.
+Cliente Flutter server-driven para a CoopVote API (contrato 1.0.0). O associado entra com identificador e senha; o aplicativo recebe descrições de tela em JSON, renderiza os componentes suportados e envia as ações, com o token da sessão, de volta à origem configurada da API.
 
 O projeto implementa integralmente os dois tipos de tela descritos no contrato:
 
@@ -46,13 +46,23 @@ flutter run --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.com/api/v1/mobi
 
 As URLs retornadas pelo backend também precisam ser alcançáveis pelo dispositivo. Em aparelho físico, use o IP da máquina na rede local tanto em `CALLBACK_BASE_URL` quanto em `COOPVOTE_ENTRY_URL`. Em produção, use HTTPS.
 
+## Sessão e segurança
+
+- `POST /api/v1/auth/login` emite o token; o app o guarda no Keychain/Keystore e envia `Authorization: Bearer` em todo callback; `401` volta ao login; botão **Sair** apaga a sessão.
+- Callbacks só são aceitos na origem exata de `COOPVOTE_ENTRY_URL` (esquema, host, porta), sob `/api/v1/mobile`, sem credenciais na URL e sem redirecionamentos. HTTP sem TLS exige `--dart-define=COOPVOTE_ALLOW_HTTP=true` (padrão apenas em depuração).
+- Respostas são limitadas a 256 KiB; telas a 200 itens; textos a 2.000 caracteres.
+- Depois de um timeout ao votar, o app consulta o recibo (`/votes/me`) antes de repetir; a API recusa duplicidade com `409`.
+- Usuários do seed local da API: `gestora`, `auditora`, `associado-1`, `associado-2` (senha `coopvote-local`).
+
 ## Qualidade
 
 ```powershell
 flutter analyze
 flutter test --coverage
+flutter test --exclude-tags contract
+COOPVOTE_API_URL=http://127.0.0.1:8080 flutter test test/contract --tags contract   # API real com seed local
 flutter build web --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.com/api/v1/mobile
-flutter build apk --debug
+flutter build apk --debug --dart-define=COOPVOTE_ENTRY_URL=https://api.exemplo.com/api/v1/mobile
 ```
 
 A versão web serve como validação adicional. Para executá-la contra outro domínio, a API precisa autorizar a origem do navegador por CORS.
